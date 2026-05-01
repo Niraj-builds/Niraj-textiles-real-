@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Textile Collective | Woven Archive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --accent-primary: #f59e0b;
+            --accent-secondary: #afc9eb;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 50;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 96px;
+        }
+
+        nav .logo {
+            font-size: 1.125rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-primary);
+        }
+
+        nav .nav-links {
+            display: flex;
+            gap: 3rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+        }
+
+        nav .nav-links a {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        nav .nav-links a:first-child {
+            color: var(--accent-primary);
+            font-weight: 500;
+            border-bottom: 2px solid var(--accent-primary);
+        }
+
+        nav .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        nav .cart-icon {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--text-tertiary);
+            transition: color 0.3s ease;
+        }
+
+        nav .cart-icon:hover {
+            color: var(--accent-primary);
+        }
+
+        nav .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            font-size: 0.625rem;
+            font-weight: 700;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem;
+                height: auto;
+            }
+
+            nav .nav-links {
+                display: none;
+            }
+        }
+
+        /* Cart Sidebar */
+        .cart-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 40;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .cart-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .cart-sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 100%;
+            max-width: 448px;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid var(--border-color);
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.7s cubic-bezier(0.7, 0, 0.3, 1);
+            z-index: 50;
+        }
+
+        .cart-sidebar.open {
+            transform: translateX(0);
+        }
+
+        .cart-header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-header h2 {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--text-primary);
+        }
+
+        .cart-close {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .cart-close:hover {
+            color: var(--text-primary);
+        }
+
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .cart-empty {
+            color: var(--text-tertiary);
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1.5rem;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .cart-item img:hover {
+            opacity: 1;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-brand {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .cart-item-name {
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .cart-item-price {
+            font-size: 1.125rem;
+            color: var(--accent-primary);
+        }
+
+        .cart-item-remove {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .cart-item-remove:hover {
+            color: #ef4444;
+        }
+
+        .cart-footer {
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+            background: rgba(30, 41, 59, 0.4);
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.125rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .cart-total-amount {
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        .cart-checkout {
+            width: 100%;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+
+        .cart-checkout:hover:not(:disabled) {
+            background: #ffffff;
+        }
+
+        .cart-checkout:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Main Content */
+        main {
+            margin-top: 96px;
+        }
+
+        section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.3;
+            z-index: 0;
+        }
+
+        section::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            padding: 2rem;
+        }
+
+        .hero-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .hero-title {
+            font-family: 'Manrope', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 200;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.04em;
+        }
+
+        .hero-title .italic {
+            font-style: italic;
+            color: var(--accent-primary);
+        }
+
+        .hero-divider {
+            width: 192px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.4), transparent);
+            margin: 2rem auto;
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-tertiary);
+            max-width: 42rem;
+            margin: 0 auto 3rem;
+            font-weight: 300;
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--accent-primary);
+            animation: bounce 2s infinite;
+            z-index: 10;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        /* Brand Sections */
+        .brand-content {
+            position: relative;
+            z-index: 10;
+            max-width: 1280px;
+            width: 100%;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .brand-text {
+            padding-right: 2rem;
+        }
+
+        .brand-text.right {
+            padding-right: 0;
+            padding-left: 2rem;
+            text-align: right;
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .brand-card {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .brand-card.right {
+            grid-column: 2;
+            grid-row: 1;
+            order: -1;
+        }
+
+        .brand-chapter {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .brand-name {
+            font-family: 'Manrope', sans-serif;
+            font-size: clamp(2rem, 6vw, 3.75rem);
+            font-weight: 300;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-type {
+            font-style: italic;
+            color: var(--text-tertiary);
+            font-size: 2rem;
+        }
+
+        .brand-desc {
+            font-size: 1.125rem;
+            color: var(--text-tertiary);
+            max-width: 32rem;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .brand-heritage {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+            font-style: italic;
+            margin-bottom: 2rem;
+            max-width: 32rem;
+        }
+
+        .brand-button {
+            padding: 1rem 2rem;
+            border: 2px solid;
+            background: transparent;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+        }
+
+        .brand-button:hover {
+            background: white;
+            color: var(--bg-primary);
+        }
+
+        .brand-specs {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .brand-specs-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            margin-bottom: 2rem;
+        }
+
+        .brand-specs-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .brand-specs-list {
+            list-style: none;
+        }
+
+        .brand-specs-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .brand-specs-item span:last-child {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .brand-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .brand-text,
+            .brand-text.right {
+                padding: 0;
+                text-align: left;
+                grid-column: 1;
+            }
+
+            .brand-card,
+            .brand-card.right {
+                grid-column: 1;
+                order: initial;
+            }
+
+            .brand-desc {
+                max-width: 100%;
+            }
+
+            .brand-heritage {
+                max-width: 100%;
+            }
+        }
+
+        /* Footer */
+        footer {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 4rem 2rem;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0.05;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23ffffff" width="100" height="100"/><path fill="%23000000" d="M0 0h20v20H0zm30 0h20v20H30zm30 0h20v20H60zm30 0h20v20H90zM0 30h20v20H0zm30 0h20v20H30zm30 0h20v20H60zm30 0h20v20H90zM0 60h20v20H0zm30 0h20v20H30zm30 0h20v20H60zm30 0h20v20H90zM0 90h20v20H0zm30 0h20v20H30zm30 0h20v20H60zm30 0h20v20H90z"/></svg>');
+            z-index: 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            max-width: 1280px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .footer-section h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .footer-section li {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+            font-weight: 300;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section li:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-brand {
+            grid-column: span 2;
+            text-align: right;
+        }
+
+        .footer-brand h2 {
+            font-size: 2.25rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand p {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+            max-width: 28rem;
+            margin-left: auto;
+            font-weight: 300;
+            margin-bottom: 2rem;
+        }
+
+        .footer-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            margin: 2rem auto;
+            max-width: 192px;
+        }
+
+        .footer-copyright {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-brand {
+                grid-column: span 1;
+                text-align: left;
+            }
+
+            .footer-brand h2 {
+                font-size: 1.875rem;
+            }
+
+            .footer-brand p {
+                margin-left: 0;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">Textile Collective</div>
+        <div class="nav-links">
+            <a>Archive</a>
+            <a>Collections</a>
+            <a>The Loom</a>
+        </div>
+        <div class="cart-icon" onclick="toggleCart()">
+            <i class="fas fa-shopping-bag"></i>
+            <span class="cart-count" id="cartCount" style="display: none;">0</span>
+        </div>
+    </nav>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>Your Archive</h2>
+            <button class="cart-close" onclick="toggleCart()">✕</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div class="cart-empty">The archive is empty.</div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total Valuation:</span>
+                <span class="cart-total-amount" id="cartTotal">$0</span>
+            </div>
+            <button class="cart-checkout" id="checkoutBtn" onclick="handlePayment()" disabled>SECURE ACQUISITION</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" style="background-image: url('https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=2000&auto=format&fit=crop');">
+            <div class="hero-content">
+                <span class="hero-label">THE DEFINITIVE COLLECTION</span>
+                <h1 class="hero-title">Global <br><span class="italic">Textile Hub</span></h1>
+                <div class="hero-divider"></div>
+                <p class="hero-subtitle">Scroll to explore 32 curated chapters from the world's most prestigious manufacturers and fashion houses.</p>
+                <div class="hero-scroll">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Brand Sections will be inserted here by JavaScript -->
+        <div id="brandsContainer"></div>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>The Archive</h4>
+                    <ul>
+                        <li>Manifesto</li>
+                        <li>Curators</li>
+                        <li>Exhibitions</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Services</h4>
+                    <ul>
+                        <li>Bespoke Sourcing</li>
+                        <li>Textile Restoration</li>
+                        <li>Wholesale Inquiry</li>
+                    </ul>
+                </div>
+                <div class="footer-brand">
+                    <h2>Textile Collective</h2>
+                    <p>Preserving the global heritage of woven arts. Connecting the world's finest manufacturers with discerning houses.</p>
+                    <div class="footer-divider"></div>
+                    <div class="footer-copyright">© 2026 TEXTILE COLLECTIVE. ALL RIGHTS RESERVED.</div>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        // Brands Data
+        const brands = [
+            {
+                id: 'toray',
+                name: 'Toray Industries',
+                type: 'Manufacturer',
+                material: 'Synthetic Fibers',
+                vibe: 'Advanced Tech',
+                desc: 'Global leader in advanced synthetic fibers and architectural textiles. Pioneering sustainable innovation in technical fabrics.',
+                color: '#afc9eb',
+                price: 140,
+                image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Established in 1926, Toray has revolutionized textile manufacturing with cutting-edge fiber technology.'
+            },
+            {
+                id: 'arvind',
+                name: 'Arvind Limited',
+                type: 'Manufacturer',
+                material: 'Raw Denim',
+                vibe: 'Industrial Heritage',
+                desc: 'India\'s defining voice in heavyweight selvedge denim and premium cotton. Masters of vertical integration.',
+                color: '#4b7bbb',
+                price: 95,
+                image: 'https://images.unsplash.com/photo-1576871337622-98d48d1cf531?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Over 80 years of textile excellence, Arvind is synonymous with Indian denim quality.'
+            },
+            {
+                id: 'raymond',
+                name: 'Raymond Group',
+                type: 'Manufacturer',
+                material: 'Worsted Suiting',
+                vibe: 'Sartorial Elegance',
+                desc: 'The complete man. Premium worsted suiting and fine luxury fabrics for discerning professionals.',
+                color: '#c9a98e',
+                price: 210,
+                image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Since 1925, Raymond has defined Indian menswear with uncompromising quality.'
+            },
+            {
+                id: 'vardhman',
+                name: 'Vardhman Textiles',
+                type: 'Manufacturer',
+                material: 'Acrylic Yarn',
+                vibe: 'Woven Precision',
+                desc: 'Excellence in structural yarn, fabric, and acrylic fiber manufacturing with global reach.',
+                color: '#f1bc95',
+                price: 80,
+                image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Leading global acrylic fiber producer with state-of-the-art manufacturing.'
+            },
+            {
+                id: 'weiqiao',
+                name: 'Weiqiao Textile',
+                type: 'Manufacturer',
+                material: 'Cotton Spun',
+                vibe: 'Mass Production',
+                desc: 'The absolute titan of global cotton textile manufacturing and raw material supply.',
+                color: '#e2e2e2',
+                price: 60,
+                image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'World\'s largest cotton textile manufacturer with unmatched production capacity.'
+            },
+            {
+                id: 'reliance',
+                name: 'Reliance Textiles',
+                type: 'Manufacturer',
+                material: 'Polyester',
+                vibe: 'Modern Synthetic',
+                desc: 'Pioneers in high-durability polyester and advanced synthetic compounds.',
+                color: '#9d8e84',
+                price: 75,
+                image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Integrated textile solutions from fiber to finished fabric.'
+            },
+            {
+                id: 'welspun',
+                name: 'Welspun India',
+                type: 'Manufacturer',
+                material: 'Plush Terry',
+                vibe: 'Home Luxury',
+                desc: 'Global leaders in luxury bath, plush terry, and premium bed textiles.',
+                color: '#afc9eb',
+                price: 110,
+                image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Serving global luxury hotels and discerning home consumers.'
+            },
+            {
+                id: 'alok',
+                name: 'Alok Industries',
+                type: 'Manufacturer',
+                material: 'Woven Knits',
+                vibe: 'Integrated Systems',
+                desc: 'Vertically integrated textile dominance from raw yarn to final garments.',
+                color: '#f1bc95',
+                price: 85,
+                image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Complete textile ecosystem with cutting-edge technology.'
+            },
+            {
+                id: 'kpr',
+                name: 'KPR Mill',
+                type: 'Manufacturer',
+                material: 'Combed Cotton',
+                vibe: 'Sustainable Knit',
+                desc: 'Massive scale apparel and structural knitted fabric engineering.',
+                color: '#c9c6c3',
+                price: 90,
+                image: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Leading knit fabric manufacturer with sustainable practices.'
+            },
+            {
+                id: 'trident',
+                name: 'Trident Limited',
+                type: 'Manufacturer',
+                material: 'Linen Blends',
+                vibe: 'Organic Comfort',
+                desc: 'Premier engineering of terry towels and high-thread-count bed linen.',
+                color: '#d5c3b9',
+                price: 130,
+                image: 'https://images.unsplash.com/photo-1583391265517-35bbdad01209?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Excellence in home textiles with premium quality standards.'
+            },
+            {
+                id: 'ruyi',
+                name: 'Shandong Ruyi',
+                type: 'Manufacturer',
+                material: 'Heavy Wool',
+                vibe: 'Winter Heritage',
+                desc: 'The premier global source for dense wool and worsted fabric tailoring.',
+                color: '#7e5536',
+                price: 250,
+                image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Chinese textile powerhouse specializing in premium wool.'
+            },
+            {
+                id: 'grasim',
+                name: 'Grasim Industries',
+                type: 'Manufacturer',
+                material: 'Viscose Staple',
+                vibe: 'Cellulose Silk',
+                desc: 'Global pioneer in Viscose Staple Fibre (VSF) for fluid fashion draping.',
+                color: '#afc9eb',
+                price: 115,
+                image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Leading viscose fiber producer with sustainable practices.'
+            },
+            {
+                id: 'bombay',
+                name: 'Bombay Dyeing',
+                type: 'Manufacturer',
+                material: 'Percale Cotton',
+                vibe: 'Legacy Indian',
+                desc: 'The historic legacy brand anchoring Indian bed and bath linen.',
+                color: '#f1bc95',
+                price: 100,
+                image: 'https://images.unsplash.com/photo-1542272201-b1ca555f8505?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Over 150 years of Indian textile heritage and excellence.'
+            },
+            {
+                id: 'ddecor',
+                name: 'D\'Decor',
+                type: 'Manufacturer',
+                material: 'Jacquard Upholstery',
+                vibe: 'Interior Opulence',
+                desc: 'The undisputed king of woven upholstery and heavy curtain fabrics.',
+                color: '#b68763',
+                price: 180,
+                image: 'https://images.unsplash.com/photo-1564859228273-274232fdb516?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Premium home furnishing textiles with artistic designs.'
+            },
+            {
+                id: 'spaces',
+                name: 'Spaces',
+                type: 'Manufacturer',
+                material: 'Bamboo Blends',
+                vibe: 'Modern Zen',
+                desc: 'Premium bath and bed coordinates utilizing sustainable bamboo fibers.',
+                color: '#9d8e84',
+                price: 125,
+                image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Eco-conscious home textiles with premium comfort.'
+            },
+            {
+                id: 'portico',
+                name: 'Portico',
+                type: 'Manufacturer',
+                material: 'Sateen Weave',
+                vibe: 'Manhattan Chic',
+                desc: 'New York inspired fashion bedding and high-sheen home textiles.',
+                color: '#afc9eb',
+                price: 145,
+                image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Contemporary home textiles with cosmopolitan flair.'
+            },
+            {
+                id: 'nike',
+                name: 'Nike',
+                type: 'Fashion House',
+                material: 'Aero-Fleece',
+                vibe: 'Athletic Future',
+                desc: 'Performance textiles engineered for human optimization and speed.',
+                color: '#ff6600',
+                price: 150,
+                image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Innovating athletic wear since 1972 with cutting-edge fabrics.'
+            },
+            {
+                id: 'adidas',
+                name: 'Adidas',
+                type: 'Fashion House',
+                material: 'Primeknit',
+                vibe: 'Woven Sport',
+                desc: 'Architectural knitwear pushing the boundaries of athletic footwear and apparel.',
+                color: '#e2e2e2',
+                price: 140,
+                image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'German engineering meets textile innovation since 1949.'
+            },
+            {
+                id: 'zara',
+                name: 'Zara',
+                type: 'Fashion House',
+                material: 'Blended Crepe',
+                vibe: 'Fast Minimalism',
+                desc: 'Monochromatic minimalism translated through rapid-response textiles.',
+                color: '#c9c6c3',
+                price: 80,
+                image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Spanish fashion leader with rapid trend-to-retail cycles.'
+            },
+            {
+                id: 'hm',
+                name: 'H&M',
+                type: 'Fashion House',
+                material: 'Recycled Poly',
+                vibe: 'Circular Design',
+                desc: 'Democratized fashion focusing on recycled textile circularity.',
+                color: '#d5c3b9',
+                price: 65,
+                image: 'https://images.unsplash.com/photo-1583391265517-35bbdad01209?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Swedish fashion retailer pioneering sustainable practices.'
+            },
+            {
+                id: 'uniqlo',
+                name: 'Uniqlo',
+                type: 'Fashion House',
+                material: 'HeatTech / AIRism',
+                vibe: 'Functional Basics',
+                desc: 'LifeWear. Engineered microfibers that respond to human body heat.',
+                color: '#f1bc95',
+                price: 70,
+                image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Japanese minimalism meets textile innovation.'
+            },
+            {
+                id: 'levis',
+                name: 'Levi Strauss & Co.',
+                type: 'Fashion House',
+                material: 'Indigo Selvedge',
+                vibe: 'Americana Raw',
+                desc: 'The inventors of the blue jean. Masters of raw, untreated indigo denim.',
+                color: '#afc9eb',
+                price: 160,
+                image: 'https://images.unsplash.com/photo-1542272201-b1ca555f8505?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Since 1873, defining American style and denim culture.'
+            },
+            {
+                id: 'gucci',
+                name: 'Gucci',
+                type: 'Fashion House',
+                material: 'Florentine Silk',
+                vibe: 'Romantic Opulence',
+                desc: 'High-fashion maximalism expressed through intricate silk jacquards.',
+                color: '#b68763',
+                price: 950,
+                image: 'https://images.unsplash.com/photo-1564859228273-274232fdb516?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Italian luxury house since 1921 with uncompromising craftsmanship.'
+            },
+            {
+                id: 'lv',
+                name: 'Louis Vuitton',
+                type: 'Fashion House',
+                material: 'Coated Canvas',
+                vibe: 'Travel Heritage',
+                desc: 'The absolute pinnacle of French luxury trunks and coated textiles.',
+                color: '#9d8e84',
+                price: 1200,
+                image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'French luxury icon since 1854, defining travel elegance.'
+            },
+            {
+                id: 'peter',
+                name: 'Peter England',
+                type: 'Fashion House',
+                material: 'Oxford Cotton',
+                vibe: 'Honest Shirting',
+                desc: 'The backbone of Indian menswear, defined by crisp Oxford weaves.',
+                color: '#afc9eb',
+                price: 55,
+                image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Indian menswear staple with timeless appeal.'
+            },
+            {
+                id: 'van',
+                name: 'Van Heusen',
+                type: 'Fashion House',
+                material: 'Worsted Blends',
+                vibe: 'Power Dressing',
+                desc: 'Evolving the corporate wardrobe with wrinkle-resistant textile tech.',
+                color: '#c9c6c3',
+                price: 85,
+                image: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'American menswear brand since 1881 with innovation.'
+            },
+            {
+                id: 'allen',
+                name: 'Allen Solly',
+                type: 'Fashion House',
+                material: 'Chino Twill',
+                vibe: 'Friday Casuals',
+                desc: 'Vibrant dyes and soft twills that redefined corporate casual wear.',
+                color: '#f1bc95',
+                price: 75,
+                image: 'https://images.unsplash.com/photo-1576871337622-98d48d1cf531?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Indian casual wear revolution with contemporary style.'
+            },
+            {
+                id: 'louis',
+                name: 'Louis Philippe',
+                type: 'Fashion House',
+                material: 'Sea Island Cotton',
+                vibe: 'The Upper Crest',
+                desc: 'Premium menswear crafted from the world\'s finest long-staple cotton.',
+                color: '#b68763',
+                price: 110,
+                image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Luxury menswear with uncompromising quality standards.'
+            },
+            {
+                id: 'fabindia',
+                name: 'Fabindia',
+                type: 'Fashion House',
+                material: 'Khadi & Handloom',
+                vibe: 'Earthy Crafts',
+                desc: 'Championing rural Indian weaving techniques and organic dyes.',
+                color: '#9d8e84',
+                price: 65,
+                image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Preserving Indian handloom traditions since 1960.'
+            },
+            {
+                id: 'biba',
+                name: 'Biba',
+                type: 'Fashion House',
+                material: 'Georgette',
+                vibe: 'Modern Ethnic',
+                desc: 'Fluid georgettes and silks defining contemporary Indian women\'s wear.',
+                color: '#e2e2e2',
+                price: 80,
+                image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Indian ethnic wear with modern sensibilities.'
+            },
+            {
+                id: 'w',
+                name: 'W for Woman',
+                type: 'Fashion House',
+                material: 'Liva Eco',
+                vibe: 'Fusion Drape',
+                desc: 'Contemporary fusion wear with sustainable eco-friendly fibers.',
+                color: '#afc9eb',
+                price: 70,
+                image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Modern Indian women\'s fashion with eco-consciousness.'
+            },
+            {
+                id: 'pantaloons',
+                name: 'Pantaloons',
+                type: 'Fashion House',
+                material: 'Mixed Apparels',
+                vibe: 'Family Retail',
+                desc: 'India\'s ultimate destination for versatile, everyday family textiles.',
+                color: '#f1bc95',
+                price: 50,
+                image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2000&auto=format&fit=crop',
+                heritage: 'Comprehensive family fashion with accessible quality.'
+            }
+        ];
+
+        let cart = [];
+
+        // Render Brands
+        function renderBrands() {
+            const container = document.getElementById('brandsContainer');
+            brands.forEach((brand, index) => {
+                const isEven = index % 2 === 0;
+                const section = document.createElement('section');
+                section.style.backgroundImage = `url('${brand.image}')`;
+                
+                section.innerHTML = `
+                    <div class="brand-content">
+                        <div class="brand-text ${!isEven ? 'right' : ''}">
+                            <span class="brand-chapter" style="color: ${brand.color};">CHAPTER ${String(index + 1).padStart(2, '0')}</span>
+                            <h2 class="brand-name">${brand.name} <br><span class="brand-type">${brand.type}</span></h2>
+                            <p class="brand-desc">${brand.desc}</p>
+                            ${brand.heritage ? `<p class="brand-heritage">"${brand.heritage}"</p>` : ''}
+                            <button class="brand-button" style="border-color: ${brand.color}; color: ${brand.color};" onclick="addToCart('${brand.id}')">ACQUIRE ${brand.material}</button>
+                        </div>
+                        <div class="brand-specs ${!isEven ? 'right' : ''}">
+                            <div class="brand-specs-divider"></div>
+                            <div class="brand-specs-title" style="color: ${brand.color};">${isEven ? 'ARCHIVE SPECIFICATIONS' : 'HERITAGE NOTES'}</div>
+                            <ul class="brand-specs-list">
+                                <li class="brand-specs-item"><span>Primary Textile</span> <span>${brand.material}</span></li>
+                                <li class="brand-specs-item"><span>Aesthetic</span> <span>${brand.vibe}</span></li>
+                                <li class="brand-specs-item"><span>Valuation</span> <span>$${brand.price} / Yard</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(section);
+            });
+        }
+
+        // Cart Functions
+        function toggleCart() {
+            const overlay = document.getElementById('cartOverlay');
+            const sidebar = document.getElementById('cartSidebar');
+            overlay.classList.toggle('open');
+            sidebar.classList.toggle('open');
+        }
+
+        function addToCart(brandId) {
+            const brand = brands.find(b => b.id === brandId);
+            if (brand) {
+                cart.push({
+                    name: `${brand.material} Archive Specimen`,
+                    brand: brand.name,
+                    price: brand.price,
+                    image: brand.image
+                });
+                updateCart();
+                toggleCart();
+            }
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cartItems');
+            const cartCount = document.getElementById('cartCount');
+            const cartTotal = document.getElementById('cartTotal');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<div class="cart-empty">The archive is empty.</div>';
+                cartCount.style.display = 'none';
+                checkoutBtn.disabled = true;
+            } else {
+                cartCount.textContent = cart.length;
+                cartCount.style.display = 'flex';
+                checkoutBtn.disabled = false;
+                
+                cartItems.innerHTML = cart.map((item, index) => `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="${item.name}">
+                        <div class="cart-item-info">
+                            <div class="cart-item-brand">${item.brand}</div>
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">$${item.price}</div>
+                        </div>
+                        <button class="cart-item-remove" onclick="removeFromCart(${index})">Remove</button>
+                    </div>
+                `).join('');
+            }
+
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            cartTotal.textContent = `$${total}`;
+        }
+
+        function handlePayment() {
+            if (cart.length === 0) return;
+            
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            alert(`STRIPE PAYMENT TRIGGERED!\n\nIn a live environment, this redirects to the secure Stripe Checkout portal to charge $${total}.\n\nItems in cart: ${cart.length}`);
+        }
+
+        // Initialize
+        renderBrands();
+    </script>
+</body>
+</html>
